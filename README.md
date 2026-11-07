@@ -2,7 +2,7 @@
 
 Offline grounding checks for answers against their sources.
 
-GroundCheck verifies that an answer is actually supported by the documents it claims to draw on: citations resolve to real sources, every answer sentence finds lexical support in a source document, and every number in the answer appears in the sources. It is dependency-free and runs fully offline, so grounding becomes a reproducible CI gate instead of a read-it-yourself review.
+GroundCheck checks whether an answer is lexically grounded in the documents it claims to draw on: citations resolve to real sources, answer sentences find token-level support in a source document, and numbers in the answer appear somewhere in the sources. It is dependency-free and runs fully offline, so lexical grounding becomes a reproducible CI gate instead of a read-it-yourself review.
 
 ## Why
 
@@ -32,7 +32,15 @@ Sources are JSONL, one `{"id": "...", "text": "..."}` object per line (`doc_id` 
 - `bash examples/demo.sh` runs fully offline: a grounded answer passes all gates while an ungrounded one (a fabricated test count, a citation with no source, invented claims) is rejected, with JSON and Markdown reports asserted for both.
 - CI runs the same suite across Python 3.10-3.13.
 
-GroundCheck measures lexical grounding: token containment, citation resolution and number consistency. These are strong fabrication signals, but they are not semantic entailment - a fully paraphrased-but-true sentence can score low, and a lexically supported sentence can still be subtly wrong. Decimal numbers are handled so `1.57` is one number, not two sentences.
+## What it catches and what it misses
+
+GroundCheck measures lexical grounding: token containment, citation resolution and number presence. These are useful fabrication signals, but they are not semantic entailment, and the checks cannot establish that a claim is actually supported. Documented cases that pass every check:
+
+- **Negation** - "The suite does not contain 40 unit tests" scores as supported and its number matches, because containment ignores word order and negation.
+- **Wrong attribution** - if the sources say project A has 40 tests, an answer giving project B 40 tests passes numeric consistency: the number exists, just attached to the wrong claim.
+- **Coincidental number matches** - a figure anywhere in the sources satisfies the check, even in an unrelated sentence about something else.
+
+False negatives exist too: a fully paraphrased-but-true sentence can score below the support threshold. Treat GroundCheck as a tripwire for ungrounded output, not as proof of correctness. Decimal numbers are handled so `1.57` is one number, not two sentences.
 
 ## License
 
