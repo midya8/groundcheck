@@ -1,0 +1,1 @@
+RetrievalBench scores rankings with recall@k, precision@k, MRR and graded nDCG@k [1]. The suite ships 42 unit tests [1]. TokenForge trains byte pair encoding merges from raw text with deterministic tie-breaking [2], and its demo corpus compresses to 1.57 bytes per token [2].
