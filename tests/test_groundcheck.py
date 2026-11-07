@@ -174,6 +174,26 @@ class TestCheckGrounding(unittest.TestCase):
         self.assertEqual(report["mean_support"], 1.0)
 
 
+class TestDocumentedLimitations(unittest.TestCase):
+    """These tests pin the lexical-only bound documented in the README:
+    each case is wrong or misleading but passes every check."""
+
+    def test_negation_passes(self):
+        # containment ignores word order and negation
+        report = check_grounding("The test suite does not contain 40 unit tests.", SOURCES)
+        self.assertEqual(report["finding_count"], 0)
+
+    def test_wrong_attribution_passes(self):
+        # 1.57 belongs to the tokenizer corpus; assigning it to retrieval passes
+        report = check_grounding("The retrieval demo compresses to 1.57 bytes per token.", SOURCES)
+        self.assertNotIn("number_not_in_sources", [f["kind"] for f in report["findings"]])
+
+    def test_coincidental_number_passes(self):
+        sources = [{"id": "s1", "text": "The launch is on day 40 of the program."}]
+        report = check_grounding("The pipeline has 40 stages.", sources)
+        self.assertNotIn("number_not_in_sources", [f["kind"] for f in report["findings"]])
+
+
 class TestReports(unittest.TestCase):
     def setUp(self):
         self.report = check_grounding(
