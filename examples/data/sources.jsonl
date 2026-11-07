@@ -1,0 +1,2 @@
+{"id": "retrieval", "text": "RetrievalBench builds an exact Okapi BM25 index over a local JSONL corpus. It scores rankings with recall@k, precision@k, MRR and graded nDCG@k. The suite ships 42 unit tests and runs fully offline."}
+{"id": "tokenizer", "text": "TokenForge trains byte pair encoding merges from raw text with deterministic tie-breaking. The base vocabulary is the 256 byte values, so any text encodes and decodes exactly. Its demo corpus compresses to 1.57 bytes per token."}

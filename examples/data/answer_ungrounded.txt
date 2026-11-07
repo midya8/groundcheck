@@ -1,0 +1,1 @@
+RetrievalBench scores rankings with recall@k and graded nDCG@k [1]. The suite ships 97 unit tests [1]. TokenForge uses a neural embedding vocabulary of 50000 tokens [3], trained on 12 GPU clusters.
