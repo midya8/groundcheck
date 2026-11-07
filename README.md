@@ -28,7 +28,7 @@ Sources are JSONL, one `{"id": "...", "text": "..."}` object per line (`doc_id` 
 
 ## Verification
 
-- 40 unit tests cover tokenization, decimal-safe sentence splitting, number extraction and matching, citation parsing, source loading validation, support scoring (including cross-sentence combinations), every finding kind, report escaping and the CLI end to end including all three gates.
+- 43 unit tests cover tokenization, decimal-safe sentence splitting, number extraction and matching, citation parsing, source loading validation, support scoring (including cross-sentence combinations), every finding kind, report escaping and the CLI end to end including all three gates.
 - `bash examples/demo.sh` runs fully offline: a grounded answer passes all gates while an ungrounded one (a fabricated test count, a citation with no source, invented claims) is rejected, with JSON and Markdown reports asserted for both.
 - CI runs the same suite across Python 3.10-3.13.
 
@@ -36,7 +36,7 @@ Sources are JSONL, one `{"id": "...", "text": "..."}` object per line (`doc_id` 
 
 GroundCheck measures lexical grounding: token containment, citation resolution and number presence. These are useful fabrication signals, but they are not semantic entailment, and the checks cannot establish that a claim is actually supported. Documented cases that pass every check:
 
-- **Negation** - "The suite does not contain 40 unit tests" scores as supported and its number matches, because containment ignores word order and negation.
+- **Negation** - "The suite does not contain 43 unit tests" scores as supported and its number matches, because containment ignores word order and negation.
 - **Wrong attribution** - if the sources say project A has 40 tests, an answer giving project B 40 tests passes numeric consistency: the number exists, just attached to the wrong claim.
 - **Coincidental number matches** - a figure anywhere in the sources satisfies the check, even in an unrelated sentence about something else.
 
