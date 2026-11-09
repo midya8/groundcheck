@@ -1,0 +1,1 @@
+{"answer":"The build contains 43 unit tests [2].","sources":[{"id":"build","text":"The build contains 43 unit tests. The parser supports JSON input."},{"id":"launch","text":"The launch is on day 40. The report lists 12 checks."}],"threshold":0.6,"scope":"cited"}
