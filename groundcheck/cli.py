@@ -16,6 +16,11 @@ def _read_answer(args):
 
 
 def _cmd_check(args):
+    import math
+    if not math.isfinite(args.min_support) or not 0 <= args.min_support <= 1:
+        raise ValueError("min support must be finite and in [0, 1]")
+    if args.max_unsupported < 0 or (args.max_findings is not None and args.max_findings < 0):
+        raise ValueError("count gates must be nonnegative")
     sources = load_sources(args.sources)
     answer = _read_answer(args)
     report = check_grounding(answer, sources, support_threshold=args.support_threshold)
@@ -48,6 +53,17 @@ def _cmd_check(args):
     return 1 if failed else 0
 
 
+def _cmd_audit(args):
+    import json
+    from .audit import load_spec, audit
+    from pathlib import Path
+    result = audit(load_spec(Path(args.spec)))
+    Path(args.json).write_text(json.dumps(result, indent=1, allow_nan=False) + "\n", encoding="utf-8")
+    print("%d units, %d policy findings; lexical evidence, not entailment" %
+          (len(result["units"]), len(result["findings"])))
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="groundcheck",
@@ -70,6 +86,10 @@ def build_parser():
     p.add_argument("--json", help="write JSON report")
     p.add_argument("--markdown", help="write Markdown report")
     p.set_defaults(func=_cmd_check)
+    a = sub.add_parser("audit", help="complete bounded ASCII evidence witness")
+    a.add_argument("--spec", required=True, help="strict JSON answer/sources/threshold/scope")
+    a.add_argument("--json", required=True, help="full witness output")
+    a.set_defaults(func=_cmd_audit)
     return parser
 
 
