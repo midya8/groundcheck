@@ -1,6 +1,7 @@
 """Grounding checks: citation validity, lexical support, numeric consistency."""
 
 import re
+import math
 
 from .textutil import content_tokens, extract_numbers, numbers_present, split_sentences
 
@@ -57,6 +58,9 @@ def support_score(sentence, source_docs):
 
 def check_grounding(answer, sources, support_threshold=DEFAULT_SUPPORT_THRESHOLD):
     """Run all checks. sources: list of {"id", "text"}. Returns a report dict."""
+    if (isinstance(support_threshold, bool) or not isinstance(support_threshold, (int, float))
+            or not 0 <= support_threshold <= 1 or not math.isfinite(support_threshold)):
+        raise ValueError("support threshold must be finite and in [0, 1]")
     findings = []
 
     source_docs = [(idx, src["text"]) for idx, src in enumerate(sources)]
@@ -93,13 +97,13 @@ def check_grounding(answer, sources, support_threshold=DEFAULT_SUPPORT_THRESHOLD
                     "detail": "sentence support %.2f below %.2f: %s"
                     % (score, support_threshold, _truncate(sent)),
                     "sentence": sent,
-                    "support": round(score, 4),
+                    "support": score,
                 }
             )
         sentence_results.append(
             {
                 "sentence": sent,
-                "support": round(score, 4),
+                "support": score,
                 "supported": supported,
                 "source": sources[src_idx]["id"] if src_idx >= 0 else None,
                 "source_excerpt": _truncate(src_sent) if src_sent else None,
@@ -132,7 +136,7 @@ def check_grounding(answer, sources, support_threshold=DEFAULT_SUPPORT_THRESHOLD
     return {
         "answer_sentences": total,
         "unsupported_sentences": unsupported,
-        "mean_support": round(mean_support, 4),
+        "mean_support": mean_support,
         "support_threshold": support_threshold,
         "citations": citations,
         "sources_cited": len(cited_indices),
