@@ -1,10 +1,11 @@
 """Tokenization and sentence splitting helpers."""
 
 import re
+from decimal import Decimal, InvalidOperation
 
 WORD_RE = re.compile(r"[a-z0-9']+")
 SENTENCE_RE = re.compile(r"[^.!?\n]+[.!?]+(?:[\"')\]]+)?|[^.!?\n]+$", re.MULTILINE)
-NUMBER_RE = re.compile(r"(?<![\w.])-?\d[\d,]*(?:\.\d+)?(?![\w.])")
+NUMBER_RE = re.compile(r"(?<![\w.])-?\d[\d,]*(?:\.\d+)?(?!\w|\.\d)")
 
 # Small stopword list: support scoring compares content tokens only.
 STOPWORDS = frozenset(
@@ -34,17 +35,18 @@ def extract_numbers(text):
 
 
 def numbers_present(number, haystack_numbers):
-    """True when number matches a haystack entry exactly or as equal floats."""
-    if number in haystack_numbers:
-        return True
+    """Exact decimal-value equality, without binary64 rounding or infinity aliasing."""
     try:
-        value = float(number)
-    except ValueError:
+        value = Decimal(number)
+        if not value.is_finite():
+            return False
+        for other in haystack_numbers:
+            try:
+                candidate = Decimal(other)
+                if candidate.is_finite() and candidate == value:
+                    return True
+            except (InvalidOperation, ValueError, TypeError):
+                continue
         return False
-    for other in haystack_numbers:
-        try:
-            if float(other) == value:
-                return True
-        except ValueError:
-            continue
-    return False
+    except (InvalidOperation, ValueError, TypeError):
+        return False

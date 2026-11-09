@@ -1,47 +1,63 @@
 # GroundCheck
 
-Offline grounding checks for answers against their sources.
+**A citation is not evidence.** Offline lexical grounding checks with a complete evidence inspector: every claim token, citation position, source score and numeric occurrence stays inspectable.
 
-GroundCheck checks whether an answer is lexically grounded in the documents it claims to draw on: citations resolve to real sources, answer sentences find token-level support in a source document, and numbers in the answer appear somewhere in the sources. It is dependency-free and runs fully offline, so lexical grounding becomes a reproducible CI gate instead of a read-it-yourself review.
+[Live inspector](https://midya8.github.io/groundcheck/) · [Evidence contract](EVIDENCE.md) · [Original README](docs/original-readme.md)
 
 ## Why
 
-RAG pipelines answer with confidence whether or not the answer is grounded. Reviewing every answer by hand does not scale, so GroundCheck turns grounding into deterministic checks:
+A marker can resolve while citing the wrong document. A number can exist in a source while belonging to a different claim. Every word can overlap while negation changes the meaning. GroundCheck makes those boundaries visible rather than presenting a clean lexical report as a truth certificate.
 
-- **citation validation** - every `[n]` marker must resolve to a provided source, and the report shows how many sources were actually cited;
-- **lexical support scoring** - each answer sentence is scored by content-token containment against every source document (stopwords removed); a sentence combining facts from several sentences of one passage is supported by that passage, while a sentence no passage supports is flagged;
-- **numeric consistency** - every number in the answer must appear in the sources (exact or equal-value match), catching the most common fabrication: plausible-sounding figures;
-- **CI gates** - `--min-support` on mean sentence support, `--max-unsupported` on unsupported sentence count, and `--max-findings` on total findings, each with a failing exit code;
-- **reports for review** - terminal summaries, JSON artifacts for tooling, and Markdown reports with per-sentence support tables for CI job summaries.
+The original dependency-free checker, 43 original tests, corpus and offline demo remain. Its default is still maximum distinct-content-token containment in one document across all sources. Citation resolution and global numeric presence remain separate checks. Negation, attribution and coincidental-number false positives are still documented, not silently hidden by a stronger-looking metric.
 
-## Usage
+## Working inspector
+
+The independent scalar JavaScript browser computes from editable answer text, source documents, threshold and evidence scope. It shows the same units under all-source and cited-only policies; every source's matched/missing token fraction; full highlighted source documents; and every answer/source numeric match with exact offsets. Stale results hide on edit; export contains the full current computation, including an independently reconstructed original all-source report.
+
+The audit has an explicit bounded ASCII profile: 8 sources, 4,096 characters per text, 64 units, 128 total numeric occurrences and six-digit citation positions. It rejects unsupported input rather than truncating evidence. The original check retains its historical Unicode behavior. See the contract for marker-attachment conventions, no-content/empty-answer conventions and parser limitations.
+
+## CLI
+
+Original default check and gates:
 
 ```bash
-python3 -m groundcheck check \
-  --sources sources.jsonl \
-  --answer-file answer.txt \
+python -m groundcheck check \
+  --sources examples/data/sources.jsonl \
+  --answer-file examples/data/answer_grounded.txt \
   --min-support 0.8 --max-unsupported 0 --max-findings 0 \
   --json report.json --markdown report.md
 ```
 
-Sources are JSONL, one `{"id": "...", "text": "..."}` object per line (`doc_id` also accepted; ids default to `s1`, `s2`, ...). Citation markers in the answer are 1-based positions into the source list.
+Sources are JSONL, one `{"id": "...", "text": "..."}` per line. `doc_id` is accepted and missing ids default to `s1`, `s2`, ... . `[n]` refers to the source's 1-based position, not its id. Source identifiers do not authenticate authors.
+
+Complete audit:
+
+```bash
+python -m groundcheck audit --spec examples/audit.json --json evidence.json
+```
+
+The audit spec uses `answer`, `sources`, `threshold` and `scope` (`all` or `cited`). Cited scope restricts the eligible documents in each raw sentence unit. It is an additional evidence policy, not a semantic judge or a new default for `check`.
+
+## Corrected defects
+
+- Exact finite decimal comparison replaces float equality, preventing distinct integers above 2^53 and huge finite numbers from aliasing. Equal decimal spellings still match.
+- A number before terminal punctuation is recognized without treating dotted versions as numbers. Comma grouping and exponent notation remain limitations.
+- Full-precision containment reaches JSON and gates before display rounding. Nonfinite/out-of-range thresholds and invalid count gates fail clearly.
 
 ## Verification
 
-- 43 unit tests cover tokenization, decimal-safe sentence splitting, number extraction and matching, citation parsing, source loading validation, support scoring (including cross-sentence combinations), every finding kind, report escaping and the CLI end to end including all three gates.
-- `bash examples/demo.sh` runs fully offline: a grounded answer passes all gates while an ungrounded one (a fabricated test count, a citation with no source, invented claims) is rejected, with JSON and Markdown reports asserted for both.
-- CI runs the same suite across Python 3.10-3.13.
+```bash
+python -m unittest discover -s tests -v
+bash examples/demo.sh
+PYTHONPATH=. python tools/build_audits.py
+npm test
+bash tools/wheel_smoke.sh
+```
 
-## What it catches and what it misses
+66 Python tests retain all 43 originals unchanged. Exact Fraction references cover 800 decimal comparisons and exhaustive subset containment at four thresholds. Fifty complete audit reports preserve the failure controls. Independent JavaScript and actual headless Chrome check the full computations and rendered evidence, edit invalidation, export and mobile containment. Tests/regeneration run on Python 3.10-3.13; wheel reproduction runs outside the checkout. Node 22+ and Chrome are needed only for browser tests, not the Python library or live inspector.
 
-GroundCheck measures lexical grounding: token containment, citation resolution and number presence. These are useful fabrication signals, but they are not semantic entailment, and the checks cannot establish that a claim is actually supported. Documented cases that pass every check:
+The original fully offline demo passes its grounded gates and rejects its ungrounded answer using the same sources and answers. These are synthetic lexical/provenance tests, not measured model quality, a RAG factuality benchmark, semantic entailment, source authentication or a security guarantee.
 
-- **Negation** - "The suite does not contain 43 unit tests" scores as supported and its number matches, because containment ignores word order and negation.
-- **Wrong attribution** - if the sources say project A has 40 tests, an answer giving project B 40 tests passes numeric consistency: the number exists, just attached to the wrong claim.
-- **Coincidental number matches** - a figure anywhere in the sources satisfies the check, even in an unrelated sentence about something else.
+## Prior work and license
 
-False negatives exist too: a fully paraphrased-but-true sentence can score below the support threshold. Treat GroundCheck as a tripwire for ungrounded output, not as proof of correctness. Decimal numbers are handled so `1.57` is one number, not two sentences.
-
-## License
-
-MIT
+Citation evaluation and lexical overlap are prior work. The [contract](EVIDENCE.md#prior-work) links ALCE research and code, its citation-metric discussion, Python numerical/regex documentation and Unicode guidance. No ALCE code or data copied; no ALCE score claimed. Implementation and original synthetic controls by Midya Rahmani. MIT.
