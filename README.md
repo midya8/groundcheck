@@ -1,16 +1,26 @@
 # GroundCheck
 
-**A citation is not evidence.** Offline lexical grounding checks with a complete evidence inspector: every claim token, citation position, source score and numeric occurrence stays inspectable.
+Offline lexical grounding checks with an evidence inspector for claim tokens, citation positions, source scores and numeric occurrences.
 
 [Live inspector](https://midya8.github.io/groundcheck/) · [Evidence contract](EVIDENCE.md) · [Original README](docs/original-readme.md)
 
-## Why
+## Choose a check
+
+| Question | Entry point | Scope |
+| --- | --- | --- |
+| Does an answer meet the original lexical gates? | `check` | Maximum single-source token containment, citation resolution and global numeric presence |
+| Where does each score and numeric match come from? | `audit`, browser inspector | Complete bounded ASCII evidence under all-source or cited-only policies |
+
+Neither result establishes truth, semantic entailment or source authenticity.
+A resolved citation can still point to irrelevant or false content.
+
+## Lexical limits
 
 A marker can resolve while citing the wrong document. A number can exist in a source while belonging to a different claim. Every word can overlap while negation changes the meaning. GroundCheck makes those boundaries visible rather than presenting a clean lexical report as a truth certificate.
 
 The original dependency-free checker, 43 original tests, corpus and offline demo remain. Its default is still maximum distinct-content-token containment in one document across all sources. Citation resolution and global numeric presence remain separate checks. Negation, attribution and coincidental-number false positives are still documented, not silently hidden by a stronger-looking metric.
 
-## Working inspector
+## Evidence inspector
 
 The independent scalar JavaScript browser computes from editable answer text, source documents, threshold and evidence scope. It shows the same units under all-source and cited-only policies; every source's matched/missing token fraction; full highlighted source documents; and every answer/source numeric match with exact offsets. Stale results hide on edit; export contains the full current computation, including an independently reconstructed original all-source report.
 
