@@ -64,7 +64,7 @@ npm test
 bash tools/wheel_smoke.sh
 ```
 
-66 Python tests retain all 43 originals unchanged. Exact Fraction references cover 800 decimal comparisons and exhaustive subset containment at four thresholds. Fifty complete audit reports preserve the failure controls. Independent JavaScript and actual headless Chrome check the full computations and rendered evidence, edit invalidation, export and mobile containment. Tests/regeneration run on Python 3.10-3.13; wheel reproduction runs outside the checkout. Node 22+ and Chrome are needed only for browser tests, not the Python library or live inspector.
+70 Python tests retain all 43 originals unchanged. Source-order regressions cover 48 remapped-citation audit comparisons, positional tie breaks, repeated markers and a deliberately unremapped citation that changes cited-only evidence. Exact Fraction references cover 800 decimal comparisons and exhaustive subset containment at four thresholds. Fifty complete audit reports preserve the failure controls. Independent JavaScript and actual headless Chrome check the full computations and rendered evidence, edit invalidation, export and mobile containment. Tests/regeneration run on Python 3.10-3.13; wheel reproduction runs outside the checkout. Node 22+ and Chrome are needed only for browser tests, not the Python library or live inspector.
 
 The original fully offline demo passes its grounded gates and rejects its ungrounded answer using the same sources and answers. These are synthetic lexical/provenance tests, not measured model quality, a RAG factuality benchmark, semantic entailment, source authentication or a security guarantee.
 
